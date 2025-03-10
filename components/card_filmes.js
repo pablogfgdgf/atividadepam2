@@ -1,23 +1,40 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, FlatList, Image } from 'react-native';
+import { StyleSheet, Text, View, FlatList, Image, TextInput } from 'react-native';
 import { fetchFilmes } from '../service/filmes'; // Importa a função de consulta da API
 
 const CardFilmes = () => {
     const [filmes, setFilmes] = useState([]);
+    const [search, setSearch] = useState('');
+    const [filteredFilmes, setFilteredFilmes] = useState([]);
 
     useEffect(() => {
         const getFilmes = async () => {
             const filmesData = await fetchFilmes();
             setFilmes(filmesData);
+            setFilteredFilmes(filmesData);
         };
 
         getFilmes();
     }, []);
 
+    useEffect(() => {
+        setFilteredFilmes(
+            filmes.filter(filme =>
+                filme.title.toLowerCase().includes(search.toLowerCase())
+            )
+        );
+    }, [search, filmes]);
+
     return (
         <View style={styles.container}>
+            <TextInput
+                style={styles.searchBar}
+                placeholder="Buscar filmes..."
+                value={search}
+                onChangeText={setSearch}
+            />
             <FlatList
-                data={filmes}
+                data={filteredFilmes}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={({ item }) => (
                     <View style={styles.card}>
@@ -28,6 +45,9 @@ const CardFilmes = () => {
                         <View style={styles.info}>
                             <Text style={styles.textonomefilme}>{item.title}</Text>
                             <Text style={styles.textouf}>{item.release_date}</Text>
+                            <Text style={styles.textodescricao}>
+                                {item.overview.length > 100 ? `${item.overview.substring(0, 100)}...` : item.overview}
+                            </Text> {/* Limita a descrição do filme a 100 caracteres */}
                         </View>
                     </View>
                 )}
@@ -45,33 +65,49 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
+    searchBar: {
+        height: 40,
+        borderColor: '#ccc',
+        borderWidth: 1,
+        borderRadius: 8,
+        paddingHorizontal: 10,
+        marginVertical: 10,
+        width: '90%',
+    },
     card: {
         flexDirection: 'row',
-        width: '90%',
         padding: 10,
-        marginVertical: 10,
-        backgroundColor: '#f1f1f1',
-        borderBottomWidth: 0.3,
-        borderBottomColor: '#018080',
-        alignItems: 'center',
+        margin: 10,
+        backgroundColor: '#fff',
+        borderRadius: 8,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.8,
+        shadowRadius: 2,
+        elevation: 1,
     },
     image: {
         width: 100,
         height: 150,
-        borderRadius: 10,
+        borderRadius: 70,
     },
     info: {
-        marginLeft: 10,
         flex: 1,
+        marginLeft: 10,
     },
     textonomefilme: {
         fontSize: 18,
-        color: '#000000',
-        fontWeight: '600',
+        fontWeight: 'bold',
+        marginBottom: 5,
     },
     textouf: {
         fontSize: 18,
         color: '#0206ff',
         fontWeight: '900',
+    },
+    textodescricao: {
+        fontSize: 14,
+        color: '#666',
+        marginTop: 5,
     },
 });
