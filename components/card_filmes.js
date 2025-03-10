@@ -1,21 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, FlatList, Image, TextInput } from 'react-native';
+import { StyleSheet, Text, View, FlatList, Image, TextInput, Button } from 'react-native';
 import { fetchFilmes } from '../service/filmes'; // Importa a função de consulta da API
 
 const CardFilmes = () => {
     const [filmes, setFilmes] = useState([]);
     const [search, setSearch] = useState('');
     const [filteredFilmes, setFilteredFilmes] = useState([]);
+    const [page, setPage] = useState(1);
+
+    const getFilmes = async (page) => {
+        const filmesData = await fetchFilmes(page);
+        setFilmes(filmesData);
+        setFilteredFilmes(filmesData);
+    };
 
     useEffect(() => {
-        const getFilmes = async () => {
-            const filmesData = await fetchFilmes();
-            setFilmes(filmesData);
-            setFilteredFilmes(filmesData);
-        };
-
-        getFilmes();
-    }, []);
+        getFilmes(page);
+    }, [page]);
 
     useEffect(() => {
         setFilteredFilmes(
@@ -52,6 +53,18 @@ const CardFilmes = () => {
                     </View>
                 )}
             />
+            <View style={styles.pagination}>
+                <Button
+                    title="Página Anterior"
+                    onPress={() => setPage(prevPage => Math.max(prevPage - 1, 1))}
+                    disabled={page === 1}
+                />
+                <Text style={styles.pageNumber}>Página {page}</Text>
+                <Button
+                    title="Próxima Página"
+                    onPress={() => setPage(prevPage => prevPage + 1)}
+                />
+            </View>
         </View>
     );
 }
@@ -109,5 +122,15 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#666',
         marginTop: 5,
+    },
+    pagination: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        width: '90%',
+        marginVertical: 10,
+    },
+    pageNumber: {
+        fontSize: 16,
     },
 });
